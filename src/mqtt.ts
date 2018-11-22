@@ -1,5 +1,5 @@
 import { IEvent, EventHandler, guid, Message } from './common';
-let MQTT = require('./mqttws31');
+let MQTT = require('./paho-mqtt');
 
 interface ClientOptions {
     host?: string;
