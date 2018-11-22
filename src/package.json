@@ -12,7 +12,7 @@
     },
     "scripts": {
         "tsc": "tsc",
-        "build": "npm run tsc && npm run build.native",
+        "build": "npm run tsc",
         "build.native": "node scripts/build-native.js",
         "postclone": "npm i && node scripts/postclone.js && cd ../demo && npm i && npx rimraf -- package-lock.json && cd ../src",
         "test.android": "npm run tsc && npm run tslint && cd ../demo && tns build android && tns test android --justlaunch",
@@ -25,7 +25,7 @@
         "plugin.prepare": "npm run build && cd ../demo && tns plugin remove nativescript-mqtt-new && tns plugin add ../src",
         "clean": "npm run demo.reset && npx rimraf -- node_modules package-lock.json && npm i",
         "ci.tslint": "npm i && tslint '**/*.ts' --config '../tslint.json' --exclude '**/node_modules/**'",
-        "prepack": "npm run build.native"
+        "prepack": "echo nothing to pack"
     },
     "keywords": [
         "NativeScript",
