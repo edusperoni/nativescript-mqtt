@@ -1,8 +1,6 @@
 # NativeScript MQTT 3.1.1 Module
 
-This nativescript-mqtt-new module is a cross-platofrm javascript implementation leveraging native socket support and the open source [MQTT 3.1.1 PAHO library link](http://www.eclipse.org/paho). Currently the library only supports the websocket protocol for cross-platform on port 80 or 443 for SSL.
-
-This is a fork from the nativescript-mqtt plugin that fixes a few issues and makes sure it works with NS.
+This nativescript-mqtt module is a cross-platofrm javascript implementation leveraging native socket support and the open source [MQTT PAHO library link](http://www.eclipse.org/paho). Currently the library only supports the websocket protocol for cross-platform on port 80 or 443 for SSL.
 
 ## Usage Sample
 ### Create an MQTT Client
