@@ -1,7 +1,7 @@
 {
-    "name": "nativescript-mqtt-new",
+    "name": "nativescript-mqtt",
     "version": "1.1.0",
-    "description": "NativeScript mqtt plugin",
+    "description": "NativeScript MQTT plugin",
     "main": "mqtt",
     "typings": "mqtt.d.ts",
     "nativescript": {
@@ -38,10 +38,10 @@
         "email": "edusperoni@gmail.com"
     },
     "bugs": {
-        "url": "https://github.com/edusperoni/nativescript-mqtt-new/issues"
+        "url": "https://github.com/edusperoni/nativescript-mqtt/issues"
     },
     "license": "Apache-2.0",
-    "homepage": "https://github.com/edusperoni/nativescript-mqtt-new",
+    "homepage": "https://github.com/edusperoni/nativescript-mqtt",
     "readmeFilename": "README.md",
     "devDependencies": {
         "@types/node": "^8.10.38",
