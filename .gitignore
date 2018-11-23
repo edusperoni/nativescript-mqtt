@@ -9,7 +9,7 @@ src/*.d.ts
 # !src/index.d.ts
 !src/references.d.ts
 !src/scripts/*.js
-!src/mqttws31.js
+!src/paho-mqtt.js
 !seed-tests/*.js
 seed-tests/seed-copy/**/*.*
 seed-tests/seed-copy-new-git-repo/**/*.*
