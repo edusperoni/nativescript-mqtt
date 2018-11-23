@@ -5,7 +5,7 @@
   "dependencies": {
     "nativescript-theme-core": "^1.0.4",
     "nativescript-unit-test-runner": "^0.3.4",
-    "nativescript-mqtt-new": "file:../src",
+    "nativescript-mqtt": "file:../src",
     "tns-core-modules": "^5.0.1"
   },
   "devDependencies": {

@@ -27,7 +27,7 @@
   "homepage": "https://github.com/NativeScript/template-hello-world-ts",
   "android": {
     "v8Flags": "--expose_gc",
-    "requireModules": ["nativescript-mqtt-new"]
+    "requireModules": ["nativescript-mqtt"]
   },
   "devDependencies": {
     "nativescript-dev-typescript": "^0.3.0"

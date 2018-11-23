@@ -1,6 +1,5 @@
+import { Message, MQTTClient } from 'nativescript-mqtt';
 import { Observable } from 'tns-core-modules/data/observable';
-import { ClientOptions, MQTTClient } from 'nativescript-mqtt-new';
-import { Message } from 'nativescript-mqtt-new/common';
 
 export class HelloWorldModel extends Observable {
   public message: string;

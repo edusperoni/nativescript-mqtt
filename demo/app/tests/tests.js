@@ -1,4 +1,4 @@
-var MqttNew = require("nativescript-mqtt-new").MqttNew;
+var MqttNew = require("nativescript-mqtt").MqttNew;
 var mqttNew = new MqttNew();
 
 describe("greet function", function() {
