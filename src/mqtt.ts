@@ -1,4 +1,5 @@
 import { IEvent, EventHandler, guid, Message } from './common';
+export { IEvent, EventHandler, guid, Message };
 let MQTT = require('./paho-mqtt');
 
 interface ClientOptions {
