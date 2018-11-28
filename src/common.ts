@@ -1,6 +1,6 @@
 interface IEvent<T> {
     on(handler: { (data?: T): void }): void;
-    off(handler: { (data?: T): void }): void;
+    off(handler?: { (data?: T): void }): void;
 }
 
 class EventHandler<T> implements IEvent<T> {
@@ -10,8 +10,8 @@ class EventHandler<T> implements IEvent<T> {
         this.handlers.push(handler);
     }
 
-    public off(handler: { (data?: T): void }) {
-        this.handlers = this.handlers.filter(h => h !== handler);
+    public off(handler?: { (data?: T): void }) {
+        this.handlers = handler ? this.handlers.filter(h => h !== handler) : [];
     }
 
     public trigger(data?: T) {
