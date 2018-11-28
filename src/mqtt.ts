@@ -69,6 +69,7 @@ class MQTTClient {
                 this.connectionSuccess.trigger();
             },
             onFailure: (err: any) => {
+                this.connected = false;
                 this.connectionFailure.trigger(err.errorMessage);
             }
         };
@@ -82,6 +83,7 @@ class MQTTClient {
             this.messageArrived.trigger(new Message(message));
         };
 
+        this.connected = true; // as of the latest version, it considers having a socket as connected
         this.mqttClient.connect(connectOptions);
     }
 
