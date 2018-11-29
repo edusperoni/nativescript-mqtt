@@ -31,6 +31,7 @@ describe("connect function", function() {
 
     it("should connect", function(done) {
         const success = () => {
+            expect(mqttClient.connected).toEqual(true);
             done();
         };
         const fail = (e) => {
@@ -39,6 +40,7 @@ describe("connect function", function() {
         mqttClient.onConnectionSuccess.on(success);
         mqttClient.onConnectionFailure.on(fail);
         mqttClient.onConnectionLost.on(fail);
+        expect(mqttClient.connected).toEqual(false);
         mqttClient.connect("", "");
     }, 5000);
 
