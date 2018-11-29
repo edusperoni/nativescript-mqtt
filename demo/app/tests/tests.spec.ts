@@ -13,24 +13,6 @@ function generateClient() {
 describe("connect function", function() {
     let mqttClient: MQTTClient;
 
-    let connected = false;
-
-    function rebind() {
-        mqttClient.onConnectionFailure.off();
-        mqttClient.onConnectionSuccess.on(() => {
-            connected = true;
-            this.mqttClient.subscribe("testtopic/1");
-        });
-        mqttClient.onConnectionFailure.on((err) => {
-            connected = false;
-        });
-        mqttClient.onConnectionLost.on((err) => {
-            connected = false;
-        });
-        mqttClient.onMessageArrived.on((message: Message) => {
-        });
-    }
-
     it("exists", function() {
         expect(mqttClient.connect).toBeDefined();
     });
@@ -50,10 +32,10 @@ describe("connect function", function() {
     it("should connect", function(done) {
         const success = () => {
             done();
-        }
+        };
         const fail = (e) => {
             done.fail(e);
-        }
+        };
         mqttClient.onConnectionSuccess.on(success);
         mqttClient.onConnectionFailure.on(fail);
         mqttClient.onConnectionLost.on(fail);
