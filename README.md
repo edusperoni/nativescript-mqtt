@@ -44,7 +44,6 @@ setupHandlers() : void {
     });
     this.mqtt_client.onMessageDelivered.on((message: Message) => {
         console.log("Message delivered: " + message.payload);
-        this.subscribe();
     });
 }
 
@@ -148,7 +147,6 @@ export class AppComponent {
 
         this.mqtt_client.onMessageDelivered.on((message: Message) => {
             console.log("Message delivered: " + message.payload);
-            this.subscribe();
         });
     }
 }
