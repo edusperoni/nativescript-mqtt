@@ -24,6 +24,7 @@ class MQTTClient {
     private connectionFailure = new EventHandler<string>();
     private connectionLost = new EventHandler<string>();
     private messageArrived = new EventHandler<Message>();
+    private messageDelivered = new EventHandler<Message>();
 
     constructor(options: ClientOptions) {
         /* options
@@ -54,6 +55,7 @@ class MQTTClient {
     public get onConnectionFailure(): IEvent<string> { return this.connectionFailure; }
     public get onConnectionLost(): IEvent<string> { return this.connectionLost; }
     public get onMessageArrived(): IEvent<Message> { return this.messageArrived; }
+    public get onMessageDelivered(): IEvent<Message> { return this.messageDelivered; }
 
     public connect(username, password) {
         if (this.connected) {
@@ -81,6 +83,10 @@ class MQTTClient {
 
         this.mqttClient.onMessageArrived = (message: any) => {
             this.messageArrived.trigger(new Message(message));
+        };
+
+        this.mqttClient.onMessageDelivered = (message: any) => {
+            this.messageDelivered.trigger(new Message(message));
         };
 
         this.connected = true; // as of the latest version, it considers having a socket as connected
