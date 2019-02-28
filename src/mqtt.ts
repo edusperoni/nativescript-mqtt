@@ -50,7 +50,7 @@ class MQTTClient {
         this.path = options.path || '';
         this.clientId = options.clientId || guid();
         this.retryOnDisconnect = options.retryOnDisconnect || false;
-        this.cleanSession = (typeof options.cleanSession === undefined)? true : false;
+        this.cleanSession = (typeof options.cleanSession === undefined) ? true : false;
 
 
         this.mqttClient = new MQTT.Client(this.host, this.port, this.path, this.clientId);
