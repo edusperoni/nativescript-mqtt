@@ -5,16 +5,18 @@ This nativescript-mqtt module is a cross-platofrm javascript implementation leve
 ## Usage Sample
 ### Create an MQTT Client
 ```
-import {MQTTClient, ClientOptions} from "nativescript-mqtt";
+import {MQTTClient, ClientOptions, SubscribeOptions} from "nativescript-mqtt";
 ...
 mqtt_host : string = "broker.mqttdashboard.com";
 mqtt_port : number = 8000;
 mqtt_useSSL : boolean = false;
+mqtt_cleanSession : boolean = false;
 
 mqtt_clientOptions: ClientOptions = {
     host: this.mqtt_host,
     port: this.mqtt_port,
-    useSSL: this.mqtt_useSSL
+    useSSL: this.mqtt_useSSL,
+    cleanSession: this.mqtt_cleanSession
 };
 
 mqtt_client : MQTTClient = new MQTTClient(this.mqtt_clientOptions);
@@ -48,7 +50,11 @@ setupHandlers() : void {
 }
 
 subscribe() : void {
-    this.mqtt_client.subscribe(this.mqtt_topic);
+    const opts: SubscribeOptions = {
+        qos: 1
+    };
+
+    this.mqtt_client.subscribe(this.mqtt_topic, opts);
 }
 ```
 
@@ -78,7 +84,7 @@ Message {
 #### app.component.ts
 ```
 import {Component} from "@angular/core";
-import {MQTTClient, ClientOptions} from "nativescript-mqtt";
+import {MQTTClient, ClientOptions, SubscribeOptions} from "nativescript-mqtt";
 import {Message} from "nativescript-mqtt/common";
 
 @Component({
@@ -93,12 +99,14 @@ export class AppComponent {
     mqtt_username: string = "";
     mqtt_password: string = "";
     mqtt_topic: string = "ninja-topic";
+    mqtt_cleanSession: boolean = true;
 
     mqtt_clientOptions: ClientOptions = {
         host: this.mqtt_host,
         port: this.mqtt_port,
         useSSL: this.mqtt_useSSL,
-        path: this.mqtt_path
+        path: this.mqtt_path,
+        cleanSession: this.mqtt_cleanSession
     };
 
     mqtt_client: MQTTClient = new MQTTClient(this.mqtt_clientOptions);
@@ -120,7 +128,11 @@ export class AppComponent {
 
     subscribe() : void {
         try {
-            this.mqtt_client.subscribe(this.mqtt_topic);
+            const opts: SubscribeOptions = {
+                qos: 0
+            };
+
+            this.mqtt_client.subscribe(this.mqtt_topic, opts);
         }
         catch (e) {
             console.log("Caught error: " + e);
