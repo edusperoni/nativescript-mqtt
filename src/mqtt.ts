@@ -108,7 +108,7 @@ class MQTTClient {
         }
     }
 
-    public subscribe(topic: string, subscribeOpts: SubscribeOptions) {
+    public subscribe(topic: string, subscribeOpts?: SubscribeOptions) {
         this.mqttClient.subscribe(topic, subscribeOpts);
     }
 
