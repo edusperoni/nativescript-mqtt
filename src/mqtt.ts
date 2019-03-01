@@ -128,4 +128,4 @@ class MQTTClient {
 
 }
 
-export { MQTTClient, ClientOptions };
+export { MQTTClient, ClientOptions, SubscribeOptions };
