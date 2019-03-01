@@ -9,6 +9,11 @@ interface ClientOptions {
     path?: string;
     clientId?: string;
     retryOnDisconnect?: boolean;
+    cleanSession?: boolean;
+}
+
+interface SubscribeOptions {
+    qos?: number;
 }
 
 class MQTTClient {
@@ -17,6 +22,7 @@ class MQTTClient {
     private port: number;
     private path: string;
     private useSSL: boolean;
+    private cleanSession: boolean;
     public clientId: string;
     public connected: boolean;
     private retryOnDisconnect: boolean;
@@ -34,6 +40,7 @@ class MQTTClient {
           useSSL: bool - default false
           clientId: string - default UUID
           retryOnDisconnect: bool - default false
+          cleanSession: bool - default true
         */
         this.connected = false;
         this.host = options.host || 'localhost';
@@ -43,6 +50,7 @@ class MQTTClient {
         this.path = options.path || '';
         this.clientId = options.clientId || guid();
         this.retryOnDisconnect = options.retryOnDisconnect || false;
+        this.cleanSession = (typeof options.cleanSession === undefined) ? true : false;
 
 
         this.mqttClient = new MQTT.Client(this.host, this.port, this.path, this.clientId);
@@ -66,6 +74,7 @@ class MQTTClient {
             userName: username,
             password: password,
             useSSL: this.useSSL,
+            cleanSession: this.cleanSession,
             onSuccess: () => {
                 this.connected = true;
                 this.connectionSuccess.trigger();
@@ -99,8 +108,8 @@ class MQTTClient {
         }
     }
 
-    public subscribe(topic: string) {
-        this.mqttClient.subscribe(topic);
+    public subscribe(topic: string, subscribeOpts?: SubscribeOptions) {
+        this.mqttClient.subscribe(topic, subscribeOpts);
     }
 
     public unsubscribe(topic: string) {
@@ -119,4 +128,4 @@ class MQTTClient {
 
 }
 
-export { MQTTClient, ClientOptions };
+export { MQTTClient, ClientOptions, SubscribeOptions };
