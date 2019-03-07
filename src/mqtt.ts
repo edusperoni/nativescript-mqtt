@@ -133,7 +133,7 @@ class MQTTClient {
     public get onMessageDelivered(): IEvent<Message> { return this.messageDelivered; }
 
     public connect(connectOptions?: ConnectionOptions): Promise<void> {
-        if (this.connected) {
+        if (this._connectionState === ConnectionState.CONNECTED || this._connectionState === ConnectionState.CONNECTING) {
             return Promise.reject("Already connected");
         }
 
