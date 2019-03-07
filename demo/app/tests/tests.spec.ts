@@ -5,7 +5,6 @@ function generateClient() {
         clientId: "test",
         host: "broker.mqttdashboard.com",
         path: "/mqtt",
-        useSSL: false,
         port: 8000
     });
 }
@@ -41,7 +40,7 @@ describe("connect function", function() {
         mqttClient.onConnectionFailure.on(fail);
         mqttClient.onConnectionLost.on(fail);
         expect(mqttClient.connected).toEqual(false);
-        mqttClient.connect("", "");
+        mqttClient.connect();
     }, 5000);
 
     it("should not throw", function(done) {
@@ -51,7 +50,7 @@ describe("connect function", function() {
         for (let i = 0; i < attempts; i++) {
             setTimeout(() => {
                 try {
-                    mqttClient.connect("", "");
+                    mqttClient.connect();
                 } catch (e) {
                     if (!finished)
                         done.fail(e);
@@ -65,4 +64,58 @@ describe("connect function", function() {
             finished = true;
         }, attempts * tout);
     }, 5000);
+});
+
+
+describe("mqtt messaging", function() {
+    let mqttClient: MQTTClient;
+    beforeEach((done) => {
+        mqttClient = generateClient();
+        const success = () => {
+            done();
+        };
+        const fail = (e: any) => {
+            done.fail(e);
+            mqttClient.onConnectionSuccess.off();
+            mqttClient.onConnectionFailure.off();
+            mqttClient.onConnectionLost.off();
+            mqttClient.onMessageArrived.off();
+        };
+        mqttClient.onConnectionSuccess.on(success);
+        mqttClient.onConnectionFailure.on(fail);
+        mqttClient.onConnectionLost.on(fail);
+        mqttClient.connect();
+    });
+    afterEach(() => {
+        mqttClient.onConnectionSuccess.off();
+        mqttClient.onConnectionFailure.off();
+        mqttClient.onConnectionLost.off();
+        mqttClient.onMessageArrived.off();
+        mqttClient.disconnect();
+        mqttClient = null;
+    });
+    it("should send message", function(done) {
+        const message: Message = new Message("message");
+        message.destinationName = "test";
+        message.retained = false;
+        message.qos = 0;
+        mqttClient.onMessageDelivered.on((m) => {
+            done();
+        });
+        mqttClient.publish(message);
+    }, 5000);
+
+    it("should subscribe and receive message", function(done) {
+        mqttClient.onMessageArrived.on((m) => {
+            expect(m.destinationName).toEqual("test");
+            done();
+        });
+        mqttClient.subscribe("test");
+        const message: Message = new Message("message");
+        message.destinationName = "test";
+        message.retained = false;
+        message.qos = 0;
+        mqttClient.publish(message);
+    }, 5000);
+
 });

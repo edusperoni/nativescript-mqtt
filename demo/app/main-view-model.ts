@@ -12,7 +12,6 @@ export class HelloWorldModel extends Observable {
       clientId: "test",
       host: "broker.mqttdashboard.com",
       path: "/mqtt",
-      useSSL: false,
       port: 8000
     });
 
@@ -33,12 +32,12 @@ export class HelloWorldModel extends Observable {
     });
 
     this.mqttClient.onMessageArrived.on((message: Message) => {
-      console.log(`Message received. Topic: ${message.topic}. Payload: ${message.payload}`);
-      this.set("message", `Message received. Topic: ${message.topic}. Payload: ${message.payload}`);
+      console.log(`Message received. Topic: ${message.destinationName}. Payload: ${message.payloadString}`);
+      this.set("message", `Message received. Topic: ${message.destinationName}. Payload: ${message.payloadString}`);
     });
 
     this.set("message", "connecting");
 
-    this.mqttClient.connect("", "");
+    this.mqttClient.connect();
   }
 }

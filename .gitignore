@@ -10,6 +10,7 @@ src/*.d.ts
 !src/references.d.ts
 !src/scripts/*.js
 !src/paho-mqtt.js
+!src/paho-mqtt.d.ts
 !seed-tests/*.js
 seed-tests/seed-copy/**/*.*
 seed-tests/seed-copy-new-git-repo/**/*.*

@@ -1,131 +1,242 @@
 import { IEvent, EventHandler, guid, Message } from './common';
 export { IEvent, EventHandler, guid, Message };
-let MQTT = require('./paho-mqtt');
+import * as MQTT from './paho-mqtt';
+
+/**
+ * Attributes used with a connection.
+ */
+interface ConnectionOptions {
+    /**
+     * If the connect has not succeeded within this number of seconds, it is deemed to have failed.
+     * @default The default is 30 seconds.
+     */
+    timeout?: number;
+    /** Authentication username for this connection. */
+    userName?: string;
+    /** Authentication password for this connection. */
+    password?: string;
+    /** Sent by the server when the client disconnects abnormally. */
+    willMessage?: Message;
+    /**
+     * The server disconnects this client if there is no activity for this number of seconds.
+     * @default The default value of 60 seconds is assumed if not set.
+     */
+    keepAliveInterval?: number;
+    /**
+     * If true(default) the client and server persistent state is deleted on successful connect.
+     * @default true
+     */
+    cleanSession?: boolean;
+    /** If present and true, use an SSL Websocket connection. */
+    useSSL?: boolean;
+    /** Passed to the onSuccess callback or onFailure callback. */
+    invocationContext?: any;
+    /**
+     * Specifies the mqtt version to use when connecting
+     * <dl>
+     *     <dt>3 - MQTT 3.1</dt>
+     *     <dt>4 - MQTT 3.1.1 (default)</dt>
+     * </dl>
+     * @default 4
+     */
+    mqttVersion?: 3 | 4;
+    /**
+     * If set to true, will force the connection to use the selected MQTT Version or will fail to connect.
+     */
+    mqttVersionExplicit?: boolean;
+    /**
+     * Sets whether the client will automatically attempt to reconnect to the server if the connection is lost.
+     * <dl>
+     *     <dt>If set to false, the client will not attempt to automatically reconnect to the server in
+     *         the event that the connection is lost.</dt>
+     *     <dt>If set to true, in the event that the connection is lost, the client will attempt to
+     *         reconnect to the server. It will initially wait 1 second before it attempts to reconnect,
+     *         for every failed reconnect attempt, the delay will double until it is at 2 minutes at which
+     *         point the delay will stay at 2 minutes.</dt>
+     * </dl>
+     * @default false
+     */
+    reconnect?: boolean;
+    /**
+     * If present this contains either a set of hostnames or fully qualified
+     * WebSocket URIs (ws://example.com:1883/mqtt), that are tried in order in place of the host and port
+     * paramater on the construtor. The hosts are tried one at at time in order until one of then succeeds.
+     */
+    hosts?: string[];
+    /**
+     * If present the set of ports matching the hosts. If hosts contains URIs, this property is not used.
+     */
+    ports?: number[];
+}
 
 interface ClientOptions {
     host?: string;
     port?: number;
-    useSSL?: boolean;
     path?: string;
     clientId?: string;
-    retryOnDisconnect?: boolean;
-    cleanSession?: boolean;
 }
 
 interface SubscribeOptions {
-    qos?: number;
+    qos?: MQTT.Qos;
+    timeout?: number;
+}
+
+interface UnsubscribeOptions {
+    timeout?: number;
+}
+type DeferedPromise<T> = {
+    promise: Promise<T>;
+    resolve: (value?: T | PromiseLike<T>) => void;
+    reject: (reason?: any) => void;
+};
+
+enum ConnectionState {
+    CONNECTED,
+    CONNECTING,
+    DISCONNECTED
 }
 
 class MQTTClient {
-    private mqttClient;
+    private mqttClient: MQTT.Client;
     private host: string;
     private port: number;
     private path: string;
-    private useSSL: boolean;
-    private cleanSession: boolean;
     public clientId: string;
-    public connected: boolean;
-    private retryOnDisconnect: boolean;
+    public get connected() {
+        return this.mqttClient.isConnected();
+    }
+    private _connectionState: ConnectionState = ConnectionState.DISCONNECTED;
+    public get connectionState(): ConnectionState { return this._connectionState; }
     private connectionSuccess = new EventHandler<void>();
-    private connectionFailure = new EventHandler<string>();
-    private connectionLost = new EventHandler<string>();
+    private connectionFailure = new EventHandler<MQTT.MQTTError>();
+    private connectionLost = new EventHandler<MQTT.MQTTError>();
     private messageArrived = new EventHandler<Message>();
     private messageDelivered = new EventHandler<Message>();
 
     constructor(options: ClientOptions) {
-        /* options
-          host: string
-          port: int - default 80 | useSSL 443
-          path: string - default empty
-          useSSL: bool - default false
-          clientId: string - default UUID
-          retryOnDisconnect: bool - default false
-          cleanSession: bool - default true
-        */
-        this.connected = false;
+        this._connectionState = ConnectionState.DISCONNECTED;
         this.host = options.host || 'localhost';
-        this.useSSL = options.useSSL || false;
-        if (options.port) this.port = options.port;
-        else this.port = this.useSSL ? 443 : 80;
+        this.port = options.port;
         this.path = options.path || '';
         this.clientId = options.clientId || guid();
-        this.retryOnDisconnect = options.retryOnDisconnect || false;
-        this.cleanSession = (typeof options.cleanSession === undefined) ? true : false;
 
 
         this.mqttClient = new MQTT.Client(this.host, this.port, this.path, this.clientId);
-        this.mqttClient.useSSL = this.useSSL;
 
     }
 
     // events for the MQTT Client
     public get onConnectionSuccess(): IEvent<void> { return this.connectionSuccess; }
-    public get onConnectionFailure(): IEvent<string> { return this.connectionFailure; }
-    public get onConnectionLost(): IEvent<string> { return this.connectionLost; }
+    public get onConnectionFailure(): IEvent<MQTT.MQTTError> { return this.connectionFailure; }
+    public get onConnectionLost(): IEvent<MQTT.MQTTError> { return this.connectionLost; }
     public get onMessageArrived(): IEvent<Message> { return this.messageArrived; }
     public get onMessageDelivered(): IEvent<Message> { return this.messageDelivered; }
 
-    public connect(username, password) {
+    public connect(connectOptions?: ConnectionOptions): Promise<void> {
         if (this.connected) {
-            return;
+            return Promise.reject("Already connected");
         }
 
-        let connectOptions = {
-            userName: username,
-            password: password,
-            useSSL: this.useSSL,
-            cleanSession: this.cleanSession,
+        const deferred = this.defer<void>();
+        let mqttConnectOptions: MQTT.ConnectionOptions = {
+            ...connectOptions,
             onSuccess: () => {
-                this.connected = true;
+                this._connectionState = ConnectionState.CONNECTED;
+                deferred.resolve();
                 this.connectionSuccess.trigger();
             },
-            onFailure: (err: any) => {
-                this.connected = false;
-                this.connectionFailure.trigger(err.errorMessage);
+            onFailure: (err: MQTT.MQTTError) => {
+                this._connectionState = ConnectionState.DISCONNECTED;
+                deferred.reject(err);
+                this.connectionFailure.trigger(err);
             }
         };
 
         this.mqttClient.onConnectionLost = (err) => {
-            this.connected = false;
-            this.connectionLost.trigger(err.errorMessage);
+            this._connectionState = ConnectionState.DISCONNECTED;
+            this.connectionLost.trigger(err);
         };
 
-        this.mqttClient.onMessageArrived = (message: any) => {
-            this.messageArrived.trigger(new Message(message));
+        this.mqttClient.onMessageArrived = (message: Message) => {
+            this.messageArrived.trigger(message);
         };
 
-        this.mqttClient.onMessageDelivered = (message: any) => {
-            this.messageDelivered.trigger(new Message(message));
+        this.mqttClient.onMessageDelivered = (message: Message) => {
+            this.messageDelivered.trigger(message);
         };
 
-        this.connected = true; // as of the latest version, it considers having a socket as connected
-        this.mqttClient.connect(connectOptions);
+        this._connectionState = ConnectionState.CONNECTING;
+        this.mqttClient.connect(mqttConnectOptions);
+
+        return deferred.promise;
     }
 
     public disconnect() {
-        if (this.connected) {
-            this.mqttClient.disconnect();
+        if (this.connectionState === ConnectionState.DISCONNECTED) {
+            return;
         }
+        return this.mqttClient.disconnect();
     }
 
     public subscribe(topic: string, subscribeOpts?: SubscribeOptions) {
-        this.mqttClient.subscribe(topic, subscribeOpts);
+        const deferred = this.defer<{ grantedQos: MQTT.Qos }>();
+        const mqttSubscribeOpts: MQTT.SubscribeOptions = {
+            ...subscribeOpts,
+            onSuccess: (o: MQTT.OnSubscribeSuccessParams) => {
+                deferred.resolve({ grantedQos: o.grantedQos });
+            },
+            onFailure: (err: MQTT.MQTTError) => {
+                deferred.reject(err);
+            }
+        };
+        this.mqttClient.subscribe(topic, mqttSubscribeOpts);
+        return deferred.promise;
     }
 
-    public unsubscribe(topic: string) {
-        this.mqttClient.unsubscribe(topic);
+    public unsubscribe(topic: string, opts?: UnsubscribeOptions) {
+        const deferred = this.defer<void>();
+        this.mqttClient.unsubscribe(topic, {
+            ...opts,
+            onSuccess: () => {
+                deferred.resolve();
+            },
+            onFailure: (e: MQTT.MQTTError) => {
+                deferred.reject(e);
+            }
+        });
+        return deferred.promise;
     }
 
     public publish(message: Message) {
-        const mqttMessage = message.bytes !== null ?
-            new MQTT.Message(message.bytes) : new MQTT.Message(message.payload);
-        mqttMessage.destinationName = message.topic;
-        mqttMessage.retained = message.retained;
-        mqttMessage.qos = message.qos;
+        this.mqttClient.send(message);
+    }
 
-        this.mqttClient.send(mqttMessage);
+    public setTraceFunction(f: MQTT.TraceFunction) {
+        this.mqttClient.trace = f;
+    }
+
+    public startTrace() {
+        this.mqttClient.startTrace();
+    }
+
+    public stopTrace() {
+        this.mqttClient.stopTrace();
+    }
+
+    private defer<T>(): DeferedPromise<T> {
+        const deferred: DeferedPromise<T> = {
+            promise: undefined,
+            reject: undefined,
+            resolve: undefined
+        };
+
+        deferred.promise = new Promise<T>((resolve, reject) => {
+            deferred.resolve = resolve;
+            deferred.reject = reject;
+        });
+        return deferred;
     }
 
 }
 
-export { MQTTClient, ClientOptions, SubscribeOptions };
+export { MQTTClient, ClientOptions, ConnectionOptions, SubscribeOptions, UnsubscribeOptions, ConnectionState };
