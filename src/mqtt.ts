@@ -2,10 +2,12 @@ import { IEvent, EventHandler, guid, Message } from './common';
 export { IEvent, EventHandler, guid, Message };
 import * as MQTT from './paho-mqtt';
 
+export type MQTTError = MQTT.MQTTError;
+
 /**
  * Attributes used with a connection.
  */
-interface ConnectionOptions {
+export interface ConnectionOptions {
     /**
      * If the connect has not succeeded within this number of seconds, it is deemed to have failed.
      * @default The default is 30 seconds.
@@ -69,19 +71,24 @@ interface ConnectionOptions {
     ports?: number[];
 }
 
-interface ClientOptions {
+export interface ClientOptions {
     host?: string;
     port?: number;
     path?: string;
     clientId?: string;
 }
 
-interface SubscribeOptions {
+export interface OnConnectedParams {
+    reconnect: boolean;
+    uri: string;
+}
+
+export interface SubscribeOptions {
     qos?: MQTT.Qos;
     timeout?: number;
 }
 
-interface UnsubscribeOptions {
+export interface UnsubscribeOptions {
     timeout?: number;
 }
 type DeferedPromise<T> = {
@@ -90,13 +97,13 @@ type DeferedPromise<T> = {
     reject: (reason?: any) => void;
 };
 
-enum ConnectionState {
+export enum ConnectionState {
     CONNECTED,
     CONNECTING,
     DISCONNECTED
 }
 
-class MQTTClient {
+export class MQTTClient {
     private mqttClient: MQTT.Client;
     private host: string;
     private port: number;
@@ -108,8 +115,9 @@ class MQTTClient {
     private _connectionState: ConnectionState = ConnectionState.DISCONNECTED;
     public get connectionState(): ConnectionState { return this._connectionState; }
     private connectionSuccess = new EventHandler<void>();
-    private connectionFailure = new EventHandler<MQTT.MQTTError>();
-    private connectionLost = new EventHandler<MQTT.MQTTError>();
+    private mqttConnected = new EventHandler<OnConnectedParams>();
+    private connectionFailure = new EventHandler<MQTTError>();
+    private connectionLost = new EventHandler<MQTTError>();
     private messageArrived = new EventHandler<Message>();
     private messageDelivered = new EventHandler<Message>();
 
@@ -127,8 +135,9 @@ class MQTTClient {
 
     // events for the MQTT Client
     public get onConnectionSuccess(): IEvent<void> { return this.connectionSuccess; }
-    public get onConnectionFailure(): IEvent<MQTT.MQTTError> { return this.connectionFailure; }
-    public get onConnectionLost(): IEvent<MQTT.MQTTError> { return this.connectionLost; }
+    public get onConnected(): IEvent<OnConnectedParams> { return this.mqttConnected; }
+    public get onConnectionFailure(): IEvent<MQTTError> { return this.connectionFailure; }
+    public get onConnectionLost(): IEvent<MQTTError> { return this.connectionLost; }
     public get onMessageArrived(): IEvent<Message> { return this.messageArrived; }
     public get onMessageDelivered(): IEvent<Message> { return this.messageDelivered; }
 
@@ -163,6 +172,10 @@ class MQTTClient {
 
         this.mqttClient.onMessageDelivered = (message: Message) => {
             this.messageDelivered.trigger(message);
+        };
+
+        this.mqttClient.onConnected = (reconnect, URI) => {
+            this.mqttConnected.trigger({ reconnect, uri: URI });
         };
 
         this._connectionState = ConnectionState.CONNECTING;
@@ -238,5 +251,3 @@ class MQTTClient {
     }
 
 }
-
-export { MQTTClient, ClientOptions, ConnectionOptions, SubscribeOptions, UnsubscribeOptions, ConnectionState };

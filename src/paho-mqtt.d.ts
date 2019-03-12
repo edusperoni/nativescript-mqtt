@@ -98,6 +98,18 @@ declare global {
         type OnFailureCallback = (e: ErrorWithInvocationContext) => void;
 
         /**
+         * called when a connection is successfully made to the server.
+         * after a connect() method.
+         * @param reconnect If true, the connection was the result of a reconnect.
+         * @param URI The URI used to connect to the server.
+         * <ol>
+         * <li>reconnect (boolean) - If true, the connection was the result of a reconnect.</li>
+         * <li>URI (string) - The URI used to connect to the server.</li>
+         * </ol>
+         */
+        type OnConnectedHandler = (reconnect: boolean, URI: string) => void;
+
+        /**
          * Called when a connection has been lost.
          * @param error A single response object parameter is passed to the onConnectionLost callback containing the
          *  following fields:
@@ -264,6 +276,17 @@ declare global {
 
             /** function called with trace information, if set */
             trace?: TraceFunction;
+
+            /**
+             * called when a connection is successfully made to the server.
+             * after a connect() method.
+             * Parameters passed to the onConnected callback are:
+             * <ol>
+             * <li>reconnect (boolean) - If true, the connection was the result of a reconnect.</li>
+             * <li>URI (string) - The URI used to connect to the server.</li>
+             * </ol>
+             */
+            onConnected: OnConnectedHandler;
 
             /**
              * called when a connection has been lost. after a connect() method has succeeded.
