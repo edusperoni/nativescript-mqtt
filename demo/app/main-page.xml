@@ -1,7 +1,56 @@
 <Page xmlns="http://schemas.nativescript.org/tns.xsd" loaded="pageLoaded" class="page"
   xmlns:ui="nativescript-mqtt">
-  <StackLayout class="p-20">
-    <Label text="{{ message }}" class="t-20 text-center c-black" textWrap="true"/>
-    <Button text="Reconnect" tap="onReconnectTap"></Button>
-  </StackLayout>
+  <ScrollView>
+    <StackLayout class="p-20">
+      <StackLayout visibility="{{ paramsVisible }}">
+        <GridLayout columns="auto,*,auto,*" rows="auto,auto,auto,auto,auto,auto,auto">
+          <Label style="vertical-align: center;" row="0" col="0" text="Host: "></Label> <TextField row="0" col="1" colSpan="3" text="{{ host }}"></TextField>
+          <Label style="vertical-align: center;" row="1" col="0" text="Port: "></Label> <TextField row="1" col="1" text="{{ port }}"></TextField>
+          <Label style="vertical-align: center;" row="1" col="2" text="Path: "></Label> <TextField row="1" col="3" text="{{ path }}"></TextField>
+          <Label style="vertical-align: center;" row="2" col="0" text="Client ID: "></Label> <TextField row="2" col="1" colSpan="3" text="{{ clientId }}" hint="default (guid)"></TextField>
+          <Label style="vertical-align: center;" row="3" col="0" text="Username: "></Label> <TextField row="3" col="1" text="{{ user }}"></TextField>
+          <Label style="vertical-align: center;" row="3" col="2" text="Password: "></Label> <TextField row="3" col="3" text="{{ pass }}"></TextField>
+          <Label style="vertical-align: center;" row="4" col="0" text="Keepalive: "></Label> <TextField row="4" col="1" text="{{ keepalive }}" hint="60"></TextField>
+          <Label style="vertical-align: center;" row="4" col="2" text="Timeout: "></Label> <TextField row="4" col="3" text="{{ timeout }}" hint="30"></TextField>
+          <Label style="vertical-align: center;" row="5" col="0" text="TLS: "></Label> <Switch row="5" col="1" checked="{{ useSSL }}" hint="30"></Switch>
+          <Label style="vertical-align: center;" row="5" col="2" text="Clean: "></Label> <Switch row="5" col="3" checked="{{ cleanSession }}" hint="30"></Switch>
+          <Label style="vertical-align: center;" width="80" textWrap="true" row="6" col="0" text="Auto Reconnect: "></Label> <Switch row="6" col="1" checked="{{ autoReconnect }}" hint="30"></Switch>
+        </GridLayout>
+        <Button text="Connect" tap="onLockTap"></Button>
+        <Label text="{{ lockMessage }}" class="t-20 text-center c-black" textWrap="true"/>
+      </StackLayout>
+      <StackLayout visibility="{{ connectVisible }}">
+        <Label text="{{ wsUri }}" class="t-12 text-center c-black" textWrap="true"/>
+        <GridLayout rows="auto,auto,auto" columns="auto,*,auto,*">
+          <Label style="vertical-align: center;" row="0" col="0" text="Topic: "></Label> <TextField row="0" col="1" text="{{ subTopic }}"></TextField>
+          <Label style="vertical-align: center;" row="0" col="2" text="QoS: "></Label>
+          <SegmentedBar row="0" col="3" selectedIndex="{{ subQos }}">
+            <SegmentedBar.items>
+              <SegmentedBarItem title="0" />
+              <SegmentedBarItem title="1" />
+              <SegmentedBarItem title="2" />
+            </SegmentedBar.items>
+          </SegmentedBar>
+          <Button colSpan="4" row="1" text="Subscribe" tap="onSubscribeTap"></Button>
+        </GridLayout>
+        <GridLayout rows="auto,auto,auto" columns="auto,*,auto,*">
+          <Label style="vertical-align: center;" row="0" col="0" text="Topic: "></Label> <TextField row="0" col="1" text="{{ pubTopic }}"></TextField>
+          <Label style="vertical-align: center;" row="0" col="2" text="QoS: "></Label>
+          <SegmentedBar row="0" col="3" selectedIndex="{{ pubQos }}">
+            <SegmentedBar.items>
+              <SegmentedBarItem title="0" />
+              <SegmentedBarItem title="1" />
+              <SegmentedBarItem title="2" />
+            </SegmentedBar.items>
+          </SegmentedBar>
+          <TextView row="1" colSpan="4" text="{{ pubMessage }}" hint="Message" editable="true" class="input input-border t-12"></TextView>
+          <Button colSpan="4" row="2" text="Send Message" tap="onSendMessageTap"></Button>
+        </GridLayout>
+        <Button text="Disconnect" tap="onEditTap"></Button>
+        <Label text="{{ message }}" class="t-20 text-center c-black" textWrap="true"/>
+        <Button text="Reconnect" tap="onReconnectTap"></Button>
+        <TextView text="{{ logView }}" editable="false" class="input input-border t-12"></TextView>
+      </StackLayout>
+    </StackLayout>
+  </ScrollView>
 </Page>

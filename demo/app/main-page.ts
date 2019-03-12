@@ -13,5 +13,30 @@ export function pageLoaded(args: observable.EventData) {
 }
 
 export function onReconnectTap() {
-    model.connect();
+    model.reconnect();
+}
+
+export function onLockTap() {
+    if (model.validateConstructor()) {
+        model.set("lockMessage", "");
+        model.set("paramsVisible", "collapse");
+        model.set("connectVisible", "visible");
+        model.connect();
+    } else {
+        model.set("lockMessage", "Invalid Parameters");
+    }
+}
+
+export function onEditTap() {
+    model.set("paramsVisible", "visible");
+    model.set("connectVisible", "collapse");
+    model.disposeClient();
+}
+
+export function onSubscribeTap() {
+    model.subscribe();
+}
+
+export function onSendMessageTap() {
+    model.sendMessage();
 }
