@@ -1,4 +1,4 @@
-import { Message, MQTTClient } from 'nativescript-mqtt';
+import { Message, MQTTClient, OnConnectedParams } from 'nativescript-mqtt';
 import { Observable } from 'tns-core-modules/data/observable';
 
 export class HelloWorldModel extends Observable {
@@ -15,6 +15,9 @@ export class HelloWorldModel extends Observable {
       port: 8000
     });
 
+    this.mqttClient.onConnected.on((v: OnConnectedParams) => {
+      console.log("Mqtt connection stablished " + JSON.stringify(v));
+    });
     this.mqttClient.onConnectionSuccess.on(() => {
       console.log("Mqtt connected");
       this.set("message", "connected");
@@ -22,13 +25,13 @@ export class HelloWorldModel extends Observable {
     });
 
     this.mqttClient.onConnectionFailure.on((err) => {
-      console.log("Mqtt connection failure: " + err);
-      this.set("message", "Mqtt connection failure: " + err);
+      console.log("Mqtt connection failure: " + JSON.stringify(err));
+      this.set("message", "Mqtt connection failure: " + JSON.stringify(err));
     });
 
     this.mqttClient.onConnectionLost.on((err) => {
-      console.log("Mqtt connection lost: " + err);
-      this.set("message", "Mqtt connection lost: " + err);
+      console.log("Mqtt connection lost: " + JSON.stringify(err));
+      this.set("message", "Mqtt connection lost: " + JSON.stringify(err));
     });
 
     this.mqttClient.onMessageArrived.on((message: Message) => {
@@ -36,7 +39,16 @@ export class HelloWorldModel extends Observable {
       this.set("message", `Message received. Topic: ${message.destinationName}. Payload: ${message.payloadString}`);
     });
 
+    this.connect();
+  }
+
+  connect() {
+
     this.set("message", "connecting");
+
+    if (this.mqttClient.connected) {
+      this.mqttClient.disconnect();
+    }
 
     this.mqttClient.connect();
   }

@@ -2,5 +2,6 @@
   xmlns:ui="nativescript-mqtt">
   <StackLayout class="p-20">
     <Label text="{{ message }}" class="t-20 text-center c-black" textWrap="true"/>
+    <Button text="Reconnect" tap="onReconnectTap"></Button>
   </StackLayout>
 </Page>
