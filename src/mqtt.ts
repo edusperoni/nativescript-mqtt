@@ -73,7 +73,7 @@ export interface ConnectionOptions {
     ports?: number[];
 }
 
-interface BaseClientOptions {
+export interface BaseClientOptions {
     clientId?: string;
 }
 
