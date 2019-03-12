@@ -17,6 +17,19 @@ function generateBadClient() {
     });
 }
 
+function clearEvents(mqttClient: MQTTClient) {
+    mqttClient.onConnected.off();
+    mqttClient.onConnectionFailure.off();
+    mqttClient.onConnectionLost.off();
+    mqttClient.onConnectionSuccess.off();
+    mqttClient.onMessageArrived.off();
+    mqttClient.onMessageDelivered.off();
+    mqttClient.onSubscribeFailure.off();
+    mqttClient.onSubscribeSuccess.off();
+    mqttClient.onUnsubscribeFailure.off();
+    mqttClient.onUnsubscribeSuccess.off();
+}
+
 beforeAll(() => {
     jasmine.addMatchers({
         toBeMQTTErrror: function() {
@@ -38,11 +51,7 @@ describe("connect function", function() {
 
     afterEach(() => {
         if (mqttClient) {
-            mqttClient.onConnected.off();
-            mqttClient.onConnectionSuccess.off();
-            mqttClient.onConnectionFailure.off();
-            mqttClient.onConnectionLost.off();
-            mqttClient.onMessageArrived.off();
+            clearEvents(mqttClient);
             mqttClient.disconnect();
             mqttClient = null;
         }
@@ -171,17 +180,14 @@ describe("connect function", function() {
 describe("mqtt messaging", function() {
     let mqttClient: MQTTClient;
     const testSubject = "nativescript-mqtt";
-    beforeEach((done) => {
+    beforeAll((done) => {
         mqttClient = generateClient();
         const success = () => {
             done();
         };
         const fail = (e: any) => {
             done.fail(e);
-            mqttClient.onConnectionSuccess.off();
-            mqttClient.onConnectionFailure.off();
-            mqttClient.onConnectionLost.off();
-            mqttClient.onMessageArrived.off();
+            clearEvents(mqttClient);
         };
         mqttClient.onConnectionSuccess.on(success);
         mqttClient.onConnectionFailure.on(fail);
@@ -189,10 +195,9 @@ describe("mqtt messaging", function() {
         mqttClient.connect();
     });
     afterEach(() => {
-        mqttClient.onConnectionSuccess.off();
-        mqttClient.onConnectionFailure.off();
-        mqttClient.onConnectionLost.off();
-        mqttClient.onMessageArrived.off();
+        clearEvents(mqttClient);
+    });
+    afterAll(() => {
         mqttClient.disconnect();
         mqttClient = null;
     });
@@ -215,15 +220,21 @@ describe("mqtt messaging", function() {
     }, 5000);
 
     it("should receive message", function(done) {
+        const messageContent = "nativescript test " + Math.floor(Math.random() * 1000);
+        let sent = false;
         mqttClient.onMessageArrived.on((m) => {
-            expect(m.destinationName).toEqual(testSubject);
-            done();
+            if (sent) {
+                expect(m.destinationName).toEqual(testSubject);
+                expect(m.payloadString).toEqual(messageContent);
+                done();
+            }
         });
-        mqttClient.subscribe(testSubject).then(() => {
-            const message: Message = new Message("message");
+        mqttClient.subscribe(testSubject).then((v) => {
+            const message: Message = new Message(messageContent);
             message.destinationName = testSubject;
             message.retained = false;
             message.qos = 0;
+            sent = true;
             mqttClient.publish(message);
         }, (e) => done.fail(e));
     }, 5000);
