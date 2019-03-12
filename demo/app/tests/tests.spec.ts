@@ -1,4 +1,5 @@
-import { MQTTClient, Message } from "nativescript-mqtt";
+import { ConnectionState, Message, MQTTClient, OnConnectedParams } from "nativescript-mqtt";
+/// <reference path="./custom-matchers.d.ts" />
 
 function generateClient() {
     return new MQTTClient({
@@ -9,61 +10,155 @@ function generateClient() {
     });
 }
 
+function generateBadClient() {
+    return new MQTTClient({
+        clientId: "test",
+        host: "127.0.0.1",
+        path: "/mqtt",
+        port: 8000
+    });
+}
+
+beforeAll(() => {
+    jasmine.addMatchers({
+        toBeMQTTErrror: function() {
+            return {
+                compare: function(actual: any) {
+                    const ret = Object(actual) === actual && "errorCode" in actual && "errorMessage" in actual;
+                    return {
+                        pass: ret,
+                        message: `Actual is ${ret ? '' : 'not'} of type MQTTError`
+                    };
+                }
+            };
+        }
+    });
+});
+
 describe("connect function", function() {
     let mqttClient: MQTTClient;
 
+    afterEach(() => {
+        if (mqttClient) {
+            mqttClient.onConnected.off();
+            mqttClient.onConnectionSuccess.off();
+            mqttClient.onConnectionFailure.off();
+            mqttClient.onConnectionLost.off();
+            mqttClient.onMessageArrived.off();
+            mqttClient.disconnect();
+            mqttClient = null;
+        }
+    });
+
     it("exists", function() {
+        mqttClient = generateClient();
         expect(mqttClient.connect).toBeDefined();
     });
 
-    beforeEach(() => {
-        mqttClient = generateClient();
-    });
-    afterEach(() => {
-        mqttClient.onConnectionSuccess.off();
-        mqttClient.onConnectionFailure.off();
-        mqttClient.onConnectionLost.off();
-        mqttClient.onMessageArrived.off();
-        mqttClient.disconnect();
-        mqttClient = null;
-    });
+    describe("success", function() {
+        beforeEach(() => {
+            mqttClient = generateClient();
+        });
 
-    it("should connect", function(done) {
-        const success = () => {
-            expect(mqttClient.connected).toEqual(true);
-            done();
-        };
-        const fail = (e) => {
-            done.fail(e);
-        };
-        mqttClient.onConnectionSuccess.on(success);
-        mqttClient.onConnectionFailure.on(fail);
-        mqttClient.onConnectionLost.on(fail);
-        expect(mqttClient.connected).toEqual(false);
-        mqttClient.connect();
-    }, 5000);
-
-    it("should not throw", function(done) {
-        let finished = false;
-        const attempts = 10;
-        const tout = 50;
-        for (let i = 0; i < attempts; i++) {
-            setTimeout(() => {
-                try {
-                    mqttClient.connect();
-                } catch (e) {
-                    if (!finished)
-                        done.fail(e);
-                    finished = true;
+        it("should connect", function(done) {
+            let successFunCalled = false;
+            let onconnectedCalled = false;
+            let expectConnected = () => {
+                expect(mqttClient.connected).toEqual(true);
+                expect(mqttClient.connectionState).toEqual(ConnectionState.CONNECTED);
+                if (successFunCalled && onconnectedCalled) {
+                    done();
                 }
-            }, i * tout);
-        }
-        setTimeout(() => {
-            if (!finished)
+            };
+            const success = () => {
+                expect(successFunCalled).toBe(false);
+                successFunCalled = true;
+                expectConnected();
+            };
+            const onconnected = (v: OnConnectedParams) => {
+                expect(onconnectedCalled).toBe(false);
+                onconnectedCalled = true;
+                expect(v.reconnect).toBe(false);
+                expectConnected();
+            };
+            const fail = (e) => {
+                done.fail(e);
+            };
+            mqttClient.onConnected.on(onconnected);
+            mqttClient.onConnectionSuccess.on(success);
+            mqttClient.onConnectionFailure.on(fail);
+            mqttClient.onConnectionLost.on(fail);
+            expect(mqttClient.connected).toEqual(false);
+            expect(mqttClient.connectionState).toEqual(ConnectionState.DISCONNECTED);
+            mqttClient.connect();
+            expect(mqttClient.connectionState).toEqual(ConnectionState.CONNECTING);
+        }, 5000);
+
+        it("should resolve", function(done) {
+            mqttClient.connect().then(() => done(), (err) => done.fail(err));
+        }, 5000);
+
+        it("should not throw", function(done) {
+            let finished = false;
+            const attempts = 10;
+            const tout = 50;
+            for (let i = 0; i < attempts; i++) {
+                setTimeout(() => {
+                    try {
+                        mqttClient.connect();
+                    } catch (e) {
+                        if (!finished)
+                            done.fail(e);
+                        finished = true;
+                    }
+                }, i * tout);
+            }
+            setTimeout(() => {
+                if (!finished)
+                    done();
+                finished = true;
+            }, attempts * tout);
+        }, 5000);
+    });
+
+    describe("fail", function() {
+        beforeEach(() => {
+            mqttClient = generateBadClient();
+        });
+
+        it("should not connect", function(done) {
+            const success = () => {
+                done.fail();
+            };
+            const onconnected = (v: OnConnectedParams) => {
+                done.fail();
+            };
+            const fail = (e) => {
+                expect(mqttClient.connected).toEqual(false);
+                expect(mqttClient.connectionState).toEqual(ConnectionState.DISCONNECTED);
+                expect(e).toBeMQTTErrror();
                 done();
-            finished = true;
-        }, attempts * tout);
-    }, 5000);
+            };
+            mqttClient.onConnected.on(onconnected);
+            mqttClient.onConnectionSuccess.on(success);
+            mqttClient.onConnectionFailure.on(fail);
+            mqttClient.onConnectionLost.on(fail);
+            expect(mqttClient.connected).toEqual(false);
+            expect(mqttClient.connectionState).toEqual(ConnectionState.DISCONNECTED);
+            mqttClient.connect();
+            expect(mqttClient.connectionState).toEqual(ConnectionState.CONNECTING);
+        }, 5000);
+
+        it("should not resolve", function(done) {
+            mqttClient.connect().then(() => done.fail(), (err) => {
+                expect(err).toBeMQTTErrror();
+                done();
+            });
+        }, 5000);
+
+    });
+
+
 });
 
 
