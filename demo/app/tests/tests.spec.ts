@@ -98,6 +98,14 @@ describe("connect function", function() {
             mqttClient.connect().then(() => done(), (err) => done.fail(err));
         }, 5000);
 
+        it("should disconnect", function(done) {
+            mqttClient.onConnectionLost.on((e) => {
+                expect(e.errorCode).toBe(0);
+                done();
+            });
+            mqttClient.connect().then(() => mqttClient.disconnect(), (e) => done.fail(e));
+        }, 5000);
+
         it("should not throw", function(done) {
             let finished = false;
             const attempts = 10;
