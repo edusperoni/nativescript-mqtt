@@ -196,7 +196,13 @@ export class MQTTClient {
         const mqttSubscribeOpts: MQTT.SubscribeOptions = {
             ...subscribeOpts,
             onSuccess: (o: MQTT.OnSubscribeSuccessParams) => {
-                deferred.resolve({ grantedQos: o.grantedQos });
+                let grantedQos: any = o.grantedQos;
+                if (!isNaN(Number(grantedQos))) { // for some reason it returns Uint8Array like: [0]
+                    grantedQos = Number(grantedQos);
+                } else {
+                    console.log("WARNING: MQTTClient cannot determine grantedQos, received " + (typeof o.grantedQos));
+                }
+                deferred.resolve({ grantedQos });
             },
             onFailure: (err: MQTT.MQTTError) => {
                 deferred.reject(err);
