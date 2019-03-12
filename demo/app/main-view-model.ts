@@ -4,6 +4,7 @@ import { Observable } from 'tns-core-modules/data/observable';
 export class HelloWorldModel extends Observable {
   public message: string;
   private mqttClient: MQTTClient;
+  private connectionTime = 0;
 
   constructor() {
     super();
@@ -16,6 +17,7 @@ export class HelloWorldModel extends Observable {
     });
 
     this.mqttClient.onConnected.on((v: OnConnectedParams) => {
+      this.connectionTime = Date.now();
       console.log("Mqtt connection stablished " + JSON.stringify(v));
     });
     this.mqttClient.onConnectionSuccess.on(() => {
@@ -31,6 +33,10 @@ export class HelloWorldModel extends Observable {
 
     this.mqttClient.onConnectionLost.on((err) => {
       console.log("Mqtt connection lost: " + JSON.stringify(err));
+      const timeConnected = Date.now() - this.connectionTime;
+      const minutes = Math.floor(timeConnected / 1000 / 60);
+      const seconds = timeConnected / 1000 - minutes * 60;
+      console.log(`Time connected: ${minutes}m ${seconds}s`);
       this.set("message", "Mqtt connection lost: " + JSON.stringify(err));
     });
 
