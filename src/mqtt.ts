@@ -3,6 +3,8 @@ export { IEvent, EventHandler, guid, Message };
 import * as MQTT from './paho-mqtt';
 
 export type MQTTError = MQTT.MQTTError;
+export type Qos = MQTT.Qos;
+export type TraceFunction = MQTT.TraceFunction;
 
 /**
  * Attributes used with a connection.
@@ -84,8 +86,12 @@ export interface OnConnectedParams {
 }
 
 export interface SubscribeOptions {
-    qos?: MQTT.Qos;
+    qos?: Qos;
     timeout?: number;
+}
+
+export interface OnSubscribedParams {
+    grantedQos: Qos;
 }
 
 export interface UnsubscribeOptions {
@@ -118,6 +124,10 @@ export class MQTTClient {
     private mqttConnected = new EventHandler<OnConnectedParams>();
     private connectionFailure = new EventHandler<MQTTError>();
     private connectionLost = new EventHandler<MQTTError>();
+    private subscribeSuccess = new EventHandler<OnSubscribedParams>();
+    private subscribeFailure = new EventHandler<MQTTError>();
+    private unsubscribeSuccess = new EventHandler<void>();
+    private unsubscribeFailure = new EventHandler<MQTTError>();
     private messageArrived = new EventHandler<Message>();
     private messageDelivered = new EventHandler<Message>();
 
@@ -138,6 +148,10 @@ export class MQTTClient {
     public get onConnected(): IEvent<OnConnectedParams> { return this.mqttConnected; }
     public get onConnectionFailure(): IEvent<MQTTError> { return this.connectionFailure; }
     public get onConnectionLost(): IEvent<MQTTError> { return this.connectionLost; }
+    public get onSubscribeSuccess(): IEvent<OnSubscribedParams> { return this.subscribeSuccess; }
+    public get onSubscribeFailure(): IEvent<MQTTError> { return this.subscribeFailure; }
+    public get onUnsubscribeSuccess(): IEvent<void> { return this.unsubscribeSuccess; }
+    public get onUnsubscribeFailure(): IEvent<MQTTError> { return this.unsubscribeFailure; }
     public get onMessageArrived(): IEvent<Message> { return this.messageArrived; }
     public get onMessageDelivered(): IEvent<Message> { return this.messageDelivered; }
 
@@ -192,7 +206,7 @@ export class MQTTClient {
     }
 
     public subscribe(topic: string, subscribeOpts?: SubscribeOptions) {
-        const deferred = this.defer<{ grantedQos: MQTT.Qos }>();
+        const deferred = this.defer<OnSubscribedParams>();
         const mqttSubscribeOpts: MQTT.SubscribeOptions = {
             ...subscribeOpts,
             onSuccess: (o: MQTT.OnSubscribeSuccessParams) => {
@@ -203,9 +217,11 @@ export class MQTTClient {
                     console.log("WARNING: MQTTClient cannot determine grantedQos, received " + (typeof o.grantedQos));
                 }
                 deferred.resolve({ grantedQos });
+                this.subscribeSuccess.trigger({ grantedQos });
             },
             onFailure: (err: MQTT.MQTTError) => {
                 deferred.reject(err);
+                this.subscribeFailure.trigger(err);
             }
         };
         this.mqttClient.subscribe(topic, mqttSubscribeOpts);
@@ -218,9 +234,11 @@ export class MQTTClient {
             ...opts,
             onSuccess: () => {
                 deferred.resolve();
+                this.unsubscribeSuccess.trigger();
             },
             onFailure: (e: MQTT.MQTTError) => {
                 deferred.reject(e);
+                this.unsubscribeFailure.trigger(e);
             }
         });
         return deferred.promise;
@@ -230,7 +248,7 @@ export class MQTTClient {
         this.mqttClient.send(message);
     }
 
-    public setTraceFunction(f: MQTT.TraceFunction) {
+    public setTraceFunction(f: TraceFunction) {
         this.mqttClient.trace = f;
     }
 

@@ -228,4 +228,8 @@ describe("mqtt messaging", function() {
         }, (e) => done.fail(e));
     }, 5000);
 
+    it("should unsubscribe", function(done) {
+        mqttClient.subscribe(testSubject).then(() => mqttClient.unsubscribe(testSubject)).then(() => done(), (e) => done.fail(e));
+    });
+
 });
