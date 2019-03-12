@@ -73,11 +73,27 @@ export interface ConnectionOptions {
     ports?: number[];
 }
 
-export interface ClientOptions {
-    host?: string;
-    port?: number;
-    path?: string;
+interface BaseClientOptions {
     clientId?: string;
+}
+
+export interface HostUriClientOptions extends BaseClientOptions {
+    hostUri: string;
+}
+export interface HostClientOptions extends BaseClientOptions {
+    host: string;
+    port: number;
+    path?: string;
+}
+
+export type ClientOptions = HostClientOptions | HostUriClientOptions;
+
+function isHostUriOptions(options: ClientOptions): options is HostUriClientOptions {
+    return Object(options) === options && "hostUri" in options;
+}
+
+function isHostOptions(options: ClientOptions): options is HostClientOptions {
+    return Object(options) === options && "host" in options && "port" in options;
 }
 
 export interface OnConnectedParams {
@@ -112,6 +128,7 @@ export enum ConnectionState {
 export class MQTTClient {
     private mqttClient: MQTT.Client;
     private host: string;
+    private hostUri: string;
     private port: number;
     private path: string;
     public clientId: string;
@@ -133,14 +150,23 @@ export class MQTTClient {
 
     constructor(options: ClientOptions) {
         this._connectionState = ConnectionState.DISCONNECTED;
-        this.host = options.host || 'localhost';
-        this.port = options.port;
-        this.path = options.path || '';
+        if (isHostUriOptions(options)) {
+            this.hostUri = options.hostUri;
+        } else if (isHostOptions(options)) {
+            this.host = options.host;
+            this.port = options.port;
+            this.path = options.path || '';
+        } else {
+            throw new Error("Invalid Client Options");
+        }
         this.clientId = options.clientId || guid();
 
 
-        this.mqttClient = new MQTT.Client(this.host, this.port, this.path, this.clientId);
-
+        if (this.hostUri !== undefined) {
+            this.mqttClient = new MQTT.Client(this.hostUri, this.clientId);
+        } else {
+            this.mqttClient = new MQTT.Client(this.host, this.port, this.path, this.clientId);
+        }
     }
 
     // events for the MQTT Client
