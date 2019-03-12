@@ -3,7 +3,6 @@ import { ConnectionState, Message, MQTTClient, OnConnectedParams } from "natives
 
 function generateClient() {
     return new MQTTClient({
-        clientId: "test",
         host: "broker.mqttdashboard.com",
         path: "/mqtt",
         port: 8000
@@ -12,7 +11,6 @@ function generateClient() {
 
 function generateBadClient() {
     return new MQTTClient({
-        clientId: "test",
         host: "127.0.0.1",
         path: "/mqtt",
         port: 8000
@@ -172,6 +170,7 @@ describe("connect function", function() {
 
 describe("mqtt messaging", function() {
     let mqttClient: MQTTClient;
+    const testSubject = "nativescript-mqtt";
     beforeEach((done) => {
         mqttClient = generateClient();
         const success = () => {
@@ -199,7 +198,7 @@ describe("mqtt messaging", function() {
     });
     it("should send message", function(done) {
         const message: Message = new Message("message");
-        message.destinationName = "test";
+        message.destinationName = testSubject;
         message.retained = false;
         message.qos = 0;
         mqttClient.onMessageDelivered.on((m) => {
@@ -208,17 +207,25 @@ describe("mqtt messaging", function() {
         mqttClient.publish(message);
     }, 5000);
 
-    it("should subscribe and receive message", function(done) {
+    it("should subscribe", function(done) {
+        mqttClient.subscribe(testSubject, { qos: 1 }).then((v) => {
+            expect(v.grantedQos).toEqual(1);
+            done();
+        }, (e) => done.fail(e));
+    }, 5000);
+
+    it("should receive message", function(done) {
         mqttClient.onMessageArrived.on((m) => {
-            expect(m.destinationName).toEqual("test");
+            expect(m.destinationName).toEqual(testSubject);
             done();
         });
-        mqttClient.subscribe("test");
-        const message: Message = new Message("message");
-        message.destinationName = "test";
-        message.retained = false;
-        message.qos = 0;
-        mqttClient.publish(message);
+        mqttClient.subscribe(testSubject).then(() => {
+            const message: Message = new Message("message");
+            message.destinationName = testSubject;
+            message.retained = false;
+            message.qos = 0;
+            mqttClient.publish(message);
+        }, (e) => done.fail(e));
     }, 5000);
 
 });
