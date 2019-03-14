@@ -1,4 +1,4 @@
-import { Message, MQTTClient, OnConnectedParams, ConnectionOptions } from 'nativescript-mqtt';
+import { Message, MQTTClient, OnConnectedParams, ConnectionOptions, ConnectionState } from 'nativescript-mqtt';
 import { Observable, PropertyChangeData } from 'tns-core-modules/data/observable';
 import { Qos } from '../../src/mqtt';
 
@@ -38,6 +38,8 @@ export class HelloWorldModel extends Observable {
   pubMessage = "";
   subMessage = "";
 
+  pubRetained = false;
+
   get wsUri() {
     return `${this.useSSL ? 'wss://' : 'ws://'}${this.host}:${this.port}${this.path}`;
   }
@@ -62,29 +64,62 @@ export class HelloWorldModel extends Observable {
       port: +this.port
     });
 
+    this.mqttClient.onMessageDelivered.on((message) => {
+      const msgObj = {
+        destinationName: message.destinationName,
+        payloadString: message.payloadString,
+        duplicate: message.duplicate,
+        retained: message.retained,
+        qos: message.qos
+      };
+      this.logMessage("onMessageDelivered: " + JSON.stringify(msgObj));
+    });
+
+    this.mqttClient.onSubscribeSuccess.on((v) => {
+      this.logMessage("onSubscribeSuccess: " + JSON.stringify(v));
+    });
+
+    this.mqttClient.onSubscribeFailure.on((v) => {
+      this.logMessage("onSubscribeFailure: " + JSON.stringify(v));
+    });
+
+    this.mqttClient.onUnsubscribeSuccess.on(() => {
+      this.logMessage("onUnsubscribeSuccess");
+    });
+
+    this.mqttClient.onUnsubscribeFailure.on((v) => {
+      this.logMessage("onUnsubscribeFailure: " + JSON.stringify(v));
+    });
+
     this.mqttClient.onConnected.on((v: OnConnectedParams) => {
       this.connectionTime = Date.now();
-      this.logMessage("Mqtt connection stablished " + JSON.stringify(v));
+      this.logMessage("onConnected: " + JSON.stringify(v));
     });
     this.mqttClient.onConnectionSuccess.on(() => {
-      this.logMessage("Mqtt connected");
-      this.mqttClient.subscribe("testtopic/1");
+      this.logMessage("onConnectionSuccess");
     });
 
     this.mqttClient.onConnectionFailure.on((err) => {
-      this.logMessage("Mqtt connection failure: " + JSON.stringify(err));
+      this.logMessage("onConnectionFailure: " + JSON.stringify(err));
     });
 
     this.mqttClient.onConnectionLost.on((err) => {
       const timeConnected = Date.now() - this.connectionTime;
       const minutes = Math.floor(timeConnected / 1000 / 60);
       const seconds = timeConnected / 1000 - minutes * 60;
-      this.logMessage("Mqtt connection lost: " + JSON.stringify(err));
+      this.logMessage("onConnectionLost: " + JSON.stringify(err));
       console.log(`Time connected: ${minutes}m ${seconds}s`);
     });
 
     this.mqttClient.onMessageArrived.on((message: Message) => {
-      this.logMessage(`Message received. Topic: ${message.destinationName}. Payload: ${message.payloadString}`);
+      const msgObj = {
+        destinationName: message.destinationName,
+        payloadString: message.payloadString,
+        duplicate: message.duplicate,
+        retained: message.retained,
+        qos: message.qos
+      };
+      this.logMessage(`onMessageArrived: ` + JSON.stringify(msgObj));
     });
   }
 
@@ -95,6 +130,11 @@ export class HelloWorldModel extends Observable {
       this.mqttClient.onConnectionFailure.off();
       this.mqttClient.onConnectionLost.off();
       this.mqttClient.onMessageArrived.off();
+      this.mqttClient.onMessageDelivered.off();
+      this.mqttClient.onSubscribeFailure.off();
+      this.mqttClient.onSubscribeSuccess.off();
+      this.mqttClient.onUnsubscribeFailure.off();
+      this.mqttClient.onUnsubscribeSuccess.off();
       this.mqttClient.disconnect();
       this.mqttClient = null;
     }
@@ -108,11 +148,11 @@ export class HelloWorldModel extends Observable {
 
   reconnect() {
 
-    this.logMessage("connecting");
-
-    if (this.mqttClient.connected) {
+    if (this.mqttClient.connectionState !== ConnectionState.DISCONNECTED) {
+      this.logMessage(`Disconnecting`);
       this.mqttClient.disconnect();
     }
+    this.logMessage(`Connecting to ${this.wsUri}`);
     const connOptions: ConnectionOptions = {
       cleanSession: this.cleanSession,
       reconnect: this.autoReconnect,
@@ -129,8 +169,18 @@ export class HelloWorldModel extends Observable {
     if (this.subTopic) {
       const topic = this.subTopic;
       this.mqttClient.subscribe(topic, { qos: this.subQos }).then(
-        (v) => this.logMessage(`subscribed to ${topic} ${JSON.stringify(v)}`),
-        (e) => this.logMessage(`Error subscribing to ${topic} ${JSON.stringify(e)}`)
+        (v) => this.logMessage(`(Promise) Subscribed to ${topic} ${JSON.stringify(v)}`),
+        (e) => this.logMessage(`(Promise) Error subscribing to ${topic} ${JSON.stringify(e)}`)
+      );
+    }
+  }
+
+  unsubscribe() {
+    if (this.subTopic) {
+      const topic = this.subTopic;
+      this.mqttClient.unsubscribe(topic).then(
+        () => this.logMessage(`(Promise) Unsubscribed to ${topic}`),
+        (e) => this.logMessage(`(Promise) Error unsubscribing to ${topic} ${JSON.stringify(e)}`)
       );
     }
   }
@@ -139,6 +189,7 @@ export class HelloWorldModel extends Observable {
       const m = new Message(this.pubMessage);
       m.destinationName = this.pubTopic;
       m.qos = this.pubQos;
+      m.retained = this.pubRetained;
       this.mqttClient.publish(m);
     }
   }

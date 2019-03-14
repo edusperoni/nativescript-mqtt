@@ -37,6 +37,10 @@ export function onSubscribeTap() {
     model.subscribe();
 }
 
+export function onUnsubscribeTap() {
+    model.unsubscribe();
+}
+
 export function onSendMessageTap() {
     model.sendMessage();
 }
