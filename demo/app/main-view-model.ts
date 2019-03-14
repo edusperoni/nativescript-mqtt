@@ -1,7 +1,15 @@
-import { Message, MQTTClient, OnConnectedParams, ConnectionOptions, ConnectionState } from 'nativescript-mqtt';
-import { Observable, PropertyChangeData } from 'tns-core-modules/data/observable';
-import { Qos } from '../../src/mqtt';
+import { ConnectionOptions, ConnectionState, Message, MQTTClient, OnConnectedParams, Qos } from 'nativescript-mqtt';
+import { Observable } from 'tns-core-modules/data/observable';
+import { ObservableArray } from 'tns-core-modules/data/observable-array/observable-array';
 
+
+interface MessageItem {
+  topic: string;
+  message: string;
+  sent: boolean;
+  retained: boolean;
+  qos: Qos;
+}
 
 function isInt(v: string) {
   return !isNaN(+v) && +v === Math.floor(+v);
@@ -40,6 +48,8 @@ export class HelloWorldModel extends Observable {
 
   pubRetained = false;
 
+  messageHistory = new ObservableArray<MessageItem>();
+
   get wsUri() {
     return `${this.useSSL ? 'wss://' : 'ws://'}${this.host}:${this.port}${this.path}`;
   }
@@ -72,6 +82,13 @@ export class HelloWorldModel extends Observable {
         retained: message.retained,
         qos: message.qos
       };
+      this.messageHistory.push({
+        topic: message.destinationName,
+        message: message.payloadString,
+        qos: message.qos,
+        retained: message.retained,
+        sent: true
+      });
       this.logMessage("onMessageDelivered: " + JSON.stringify(msgObj));
     });
 
@@ -119,6 +136,13 @@ export class HelloWorldModel extends Observable {
         retained: message.retained,
         qos: message.qos
       };
+      this.messageHistory.push({
+        topic: message.destinationName,
+        message: message.payloadString,
+        qos: message.qos,
+        retained: message.retained,
+        sent: false
+      });
       this.logMessage(`onMessageArrived: ` + JSON.stringify(msgObj));
     });
   }
@@ -137,7 +161,9 @@ export class HelloWorldModel extends Observable {
       this.mqttClient.onUnsubscribeSuccess.off();
       this.mqttClient.disconnect();
       this.mqttClient = null;
+      console.log("client disposed");
     }
+    this.set("messageHistory", new ObservableArray<MessageItem>());
     this.set("logView", "");
   }
 

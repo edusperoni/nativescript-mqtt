@@ -78,5 +78,18 @@
         <TextView text="{{ logView }}" editable="false" class="input input-border t-12"></TextView>
       </StackLayout>
     </TabViewItem>
+    <TabViewItem title="Messages">
+      <ListView items="{{ messageHistory }}" class="list-group" id="listView">
+        <ListView.itemTemplate>
+          <GridLayout rows="auto,auto,auto" columns="*,auto" class="list-group-item">
+            <Label text="{{ topic }}" textWrap="true" class="t-14" row="0" col="0" />
+            <Label text="{{ retained ? 'retained' : '' }}" row="0" col="1" class="t-12 pull-right" />
+            <Label text="{{ message }}" textWrap="true" row="1" col="0" rowSpan="2" class="t-12" />
+            <Label text="{{ 'QoS ' + qos }}" row="1" col="1" class="t-12 pull-right" />
+            <Label text="{{ sent ? 'out' : 'in' }}" row="2" col="1" class="t-12 pull-right" />
+          </GridLayout>
+        </ListView.itemTemplate>
+      </ListView>
+    </TabViewItem>
   </TabView>
 </Page>

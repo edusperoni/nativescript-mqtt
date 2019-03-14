@@ -8,6 +8,9 @@ let model: HelloWorldModel;
 export function pageLoaded(args: observable.EventData) {
     // Get the event sender
     let page = <pages.Page>args.object;
+    if (model) {
+        model.disposeClient();
+    }
     page.bindingContext = new HelloWorldModel();
     model = page.bindingContext;
 }
