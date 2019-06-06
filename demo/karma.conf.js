@@ -1,5 +1,5 @@
-module.exports = function(config) {
-  config.set({
+module.exports = function (config) {
+  const options = {
 
     // base path that will be used to resolve all patterns (eg. files, exclude)
     basePath: '',
@@ -11,13 +11,12 @@ module.exports = function(config) {
 
 
     // list of files / patterns to load in the browser
-    files: [
-      'app/**/*.js'
-    ],
+    files: ['app/tests/**/*.ts'],
 
 
     // list of files to exclude
     exclude: [
+      'app/tests/**/*.d.ts'
     ],
 
 
@@ -30,7 +29,7 @@ module.exports = function(config) {
     // test results reporter to use
     // possible values: 'dots', 'progress'
     // available reporters: https://npmjs.org/browse/keyword/karma-reporter
-    reporters: ['progress'],
+    reporters: ['mocha'],
 
 
     // web server port
@@ -73,5 +72,36 @@ module.exports = function(config) {
     // Continuous Integration mode
     // if true, Karma captures browsers, runs the tests and exits
     singleRun: true
-  });
-};
+  };
+
+  setWebpackPreprocessor(config, options);
+  setWebpack(config, options);
+
+  config.set(options);
+}
+
+function setWebpackPreprocessor(config, options) {
+  if (config && config.bundle) {
+    if (!options.preprocessors) {
+      options.preprocessors = {};
+    }
+
+    options.files.forEach(file => {
+      if (!options.preprocessors[file]) {
+        options.preprocessors[file] = [];
+      }
+      options.preprocessors[file].push('webpack');
+    });
+  }
+}
+
+function setWebpack(config, options) {
+  if (config && config.bundle) {
+    const env = {};
+    env[config.platform] = true;
+    env.sourceMap = config.debugBrk;
+    options.webpack = require('./webpack.config')(env);
+    delete options.webpack.entry;
+    delete options.webpack.output.libraryTarget;
+  }
+}
