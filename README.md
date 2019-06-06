@@ -8,40 +8,37 @@ This nativescript-mqtt module is a cross-platofrm javascript implementation leve
 import {MQTTClient, ClientOptions, SubscribeOptions} from "nativescript-mqtt";
 ...
 class MyMQTT {
-    mqtt_host : string = "broker.mqttdashboard.com";
-    mqtt_port : number = 8000;
-    mqtt_useSSL : boolean = false;
-    mqtt_cleanSession : boolean = false;
+    ...
+    mqtt_host: string = "broker.mqttdashboard.com";
+    mqtt_port: number = 8000;
 
     mqtt_clientOptions: ClientOptions = {
         host: this.mqtt_host,
-        port: this.mqtt_port,
-        useSSL: this.mqtt_useSSL,
-        cleanSession: this.mqtt_cleanSession
+        port: this.mqtt_port
     };
 
-    mqtt_client : MQTTClient = new MQTTClient(this.mqtt_clientOptions);
+    mqtt_client: MQTTClient = new MQTTClient(this.mqtt_clientOptions);
 }
 ```
 ### Setup Handlers
 ```typescript
 class MyMQTT {
     ...
-    mqtt_topic : string = "sample-topic";
+    mqtt_topic: string = "sample-topic";
 
     constructor() {
         this.setupHandlers();
     }
 
-    setupHandlers() : void {
-        this.mqtt_client.onConnectionFailure.on((err : any) => {
+    setupHandlers(): void {
+        this.mqtt_client.onConnectionFailure.on((err: any) => {
             console.log("Connection failed: " + JSON.stringify(err));
         });
         this.mqtt_client.onConnectionSuccess.on(() => {
             console.log("Connected successfully!");
             this.subscribe();
         });
-        this.mqtt_client.onConnectionLost.on((err : any) => {
+        this.mqtt_client.onConnectionLost.on((err: any) => {
             console.log("Connection lost: " + JSON.stringify(err));
         });
         this.mqtt_client.onMessageArrived.on((message: Message) => {
@@ -52,12 +49,15 @@ class MyMQTT {
         });
     }
 
-    subscribe() : void {
+    subscribe(): void {
         const opts: SubscribeOptions = {
             qos: 1
         };
 
-        this.mqtt_client.subscribe(this.mqtt_topic, opts);
+        this.mqtt_client.subscribe(this.mqtt_topic, opts).then(
+            (params) => console.log(`subscribed to ${this.mqtt_topic} with QoS ${params.grantedQos}`),
+            (err) => console.log("error subscribing")
+        );
     }
 }
 ```
@@ -65,11 +65,22 @@ class MyMQTT {
 ### Connect
 ```typescript
 class MyMQTT {
-    mqtt_username : string = "";
-    mqtt_password : string = "";
+    ...
+    mqtt_username: string = "";
+    mqtt_password: string = "";
+    mqtt_useSSL: boolean = false;
+    mqtt_cleanSession: boolean = false;
+    mqtt_autoReconnect: boolean = false;
 
-    connect() : void {
-        this.mqtt_client.connect(this.mqtt_username, this.mqtt_password);
+    connect(): void {
+        const connOptions: ConnectionOptions = {
+            cleanSession: this.mqtt_cleanSession,
+            reconnect: this.autoReconnect,
+            useSSL: this.mqtt_useSSL,
+            userName: this.mqtt_username,
+            password: this.mqtt_password
+        }
+        this.mqtt_client.connect(connOptions);
     }
 }
 ```
@@ -137,7 +148,7 @@ class Message {
 #### app.component.ts
 ```typescript
 import {Component} from "@angular/core";
-import {MQTTClient, ClientOptions, SubscribeOptions} from "nativescript-mqtt";
+import {MQTTClient, ClientOptions, SubscribeOptions, Message} from "nativescript-mqtt";
 import {Message} from "nativescript-mqtt/common";
 
 @Component({
@@ -157,29 +168,40 @@ export class AppComponent {
     mqtt_clientOptions: ClientOptions = {
         host: this.mqtt_host,
         port: this.mqtt_port,
-        useSSL: this.mqtt_useSSL,
         path: this.mqtt_path,
-        cleanSession: this.mqtt_cleanSession
     };
 
     mqtt_client: MQTTClient = new MQTTClient(this.mqtt_clientOptions);
 
-    loading : boolean = false;
+    loading: boolean = false;
 
     constructor() {
         this.setupHandlers();
     }
 
-    connect() : void {
-        try{
-            this.mqtt_client.connect(this.mqtt_username, this.mqtt_password);
-        }
-        catch (e) {
-            console.log("Caught error: " + e);
-        }
+    connect(): void {
+        const connOptions: ConnectionOptions = {
+            cleanSession: this.mqtt_cleanSession,
+            useSSL: this.mqtt_useSSL,
+            userName: this.mqtt_username,
+            password: this.mqtt_password
+        };
+        this.mqtt_client.connect(connOptions).then(() => {
+            console.log("connected");
+        }, (err) => {
+            console.log("connection error: " + err);
+        });
     }
 
-    subscribe() : void {
+    sendMessage() {
+        const m = new Message("message content");
+        m.destinationName = this.mqtt_topic;
+        m.qos = 1;
+        m.retained = false;
+        this.mqttClient.publish(m);
+    }
+
+    subscribe(): void {
         try {
             const opts: SubscribeOptions = {
                 qos: 0
@@ -192,7 +214,7 @@ export class AppComponent {
         }
     }
 
-    setupHandlers() : void {
+    setupHandlers(): void {
         this.mqtt_client.onConnectionFailure.on((err) => {
             console.log("Connection failed: " + err);
         });
@@ -207,11 +229,11 @@ export class AppComponent {
         });
 
         this.mqtt_client.onMessageArrived.on((message: Message) => {
-            console.log("Message received: " + message.payload);
+            console.log("Message received: " + message.payloadString);
         });
 
         this.mqtt_client.onMessageDelivered.on((message: Message) => {
-            console.log("Message delivered: " + message.payload);
+            console.log("Message delivered: " + message.payloadString);
         });
     }
 }
