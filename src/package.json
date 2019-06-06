@@ -50,7 +50,7 @@
         "semver": "^5.6.0",
         "tns-core-modules": "^5.0.1",
         "tns-platform-declarations": "^5.0.0",
-        "tslint": "^5.11.0",
+        "tslint": "^5.17.0",
         "typescript": "~2.8.2"
     },
     "dependencies": {
