@@ -5,17 +5,16 @@ matrix:
       os: linux
       node_js: "8"
       script: cd src && npm run ci.tslint && cd ../demo && npm run ci.tslint
-    # - stage: "WebPack, Build and Test"
-    #   os: osx
-    #   env:
-    #     - WebPack="iOS"
-    #   osx_image: xcode10.0
-    #   language: node_js 
-    #   node_js: "8"
-    #   jdk: oraclejdk8
-    #   script: cd demo && npm run build.plugin && npm i && tns build ios --bundle --env.uglify
     - stage: "WebPack, Build and Test"
-      language: android
+      os: osx
+      env:
+        - WebPack="iOS"
+      osx_image: xcode10.2
+      language: node_js 
+      node_js: "8"
+      jdk: oraclejdk8
+      script: cd demo && npm run build.plugin && npm i && tns build ios --bundle --env.uglify
+    - language: android
       os: linux
       env:
         - WebPack="Android"
@@ -30,19 +29,20 @@ matrix:
       before_install: nvm install stable
       script:
         - cd src && npm i && npm run tsc && cd ../demo && tns build android --no-bundle
-    # - os: osx
-    #   env: 
-    #     - BuildiOS="12"
-    #     - Xcode="10.2"
-    #   osx_image: xcode10.2
-    #   language: node_js 
-    #   node_js: "8"
-    #   jdk: oraclejdk8
-    #   script: 
-    #     - cd src && npm i && npm run tsc && cd ../demo && tns build ios --no-bundle
-    - os: linux
+    - os: osx
+      env: 
+        - BuildiOS="12"
+        - Xcode="10.2"
+      osx_image: xcode10.2
+      language: node_js 
+      node_js: "8"
+      jdk: oraclejdk8
+      script: 
+        - cd src && npm i && npm run tsc && cd ../demo && tns build ios --no-bundle
+    - stage: "Tests"
+      os: linux
       language: android
-      dist: precise
+      dist: trusty
       sudo: required
       jdk: oraclejdk8
       before_script:
@@ -52,8 +52,6 @@ matrix:
       before_install:
         - nvm install 8
       script: cd src && npm i && npm run test.android
-      install:
-        - echo y | sdkmanager --channel=4 "emulator"
     - os: osx
       language: node_js
       node_js: "8"
@@ -65,12 +63,17 @@ android:
   components:
     - tools
     - platform-tools
-    - build-tools-28.0.3
-    - android-28
     - extra-android-m2repository
     - sys-img-armeabi-v7a-android-21
+  licenses:
+    - 'android-sdk-preview-license-52d11cd2'
+    - 'android-sdk-license-.+'
+    - 'google-gdk-license-.+'
 
+before_install:
+  - yes | sdkmanager "platforms;android-28"
+  - yes | sdkmanager "build-tools;28.0.3"
 install:
-    - echo no | npm install -g nativescript
-    - tns usage-reporting disable
-    - tns error-reporting disable
+  - echo no | npm install -g nativescript
+  - tns usage-reporting disable
+  - tns error-reporting disable
