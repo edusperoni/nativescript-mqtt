@@ -1,4 +1,4 @@
-import { ConnectionOptions, ConnectionState, Message, MQTTClient, OnConnectedParams, Qos } from 'nativescript-mqtt';
+import { ConnectionOptions, ConnectionState, Message, MQTTClient, OnConnectedParams, Qos, ClientOptions } from 'nativescript-mqtt';
 import { Observable } from 'tns-core-modules/data/observable';
 import { ObservableArray } from 'tns-core-modules/data/observable-array/observable-array';
 
@@ -67,12 +67,13 @@ export class HelloWorldModel extends Observable {
 
   generateClient() {
     this.disposeClient();
-    this.mqttClient = new MQTTClient({
+    const clientOptions: ClientOptions = {
       clientId: this.clientId ? this.clientId : undefined,
       host: this.host,
       path: this.path,
       port: +this.port
-    });
+    };
+    this.mqttClient = new MQTTClient(clientOptions);
 
     this.mqttClient.onMessageDelivered.on((message) => {
       const msgObj = {

@@ -74,15 +74,26 @@ export interface ConnectionOptions {
 }
 
 export interface BaseClientOptions {
+    /**
+     * the Messaging client identifier, between 1 and 23 characters in length.
+     * If not set, a random UID is used.
+     */
     clientId?: string;
 }
 
 export interface HostUriClientOptions extends BaseClientOptions {
+    /** the address of the messaging server as a fully qualified WebSocket URI */
     hostUri: string;
 }
 export interface HostClientOptions extends BaseClientOptions {
+    /** the address of the messaging server as a DNS name or dotted decimal IP address. */
     host: string;
+    /** the port number to connect to */
     port: number;
+    /**
+     * the path on the host to connect to - only used if host is not a URI.
+     * @default '/mqtt'
+     */
     path?: string;
 }
 
