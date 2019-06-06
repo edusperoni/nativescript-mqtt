@@ -50,8 +50,6 @@ matrix:
         - emulator -avd test -no-audio -no-window &
         - android-wait-for-emulator
       before_install:
-        - yes | sdkmanager "platforms;android-28"
-        - yes | sdkmanager "build-tools;28.0.3"
         - nvm install 8
       script: cd src && npm i && npm run test.android
     # - os: osx
@@ -65,6 +63,8 @@ android:
   components:
     - tools
     - platform-tools
+    - android-28
+    - "build-tools;28.0.3"
     - extra-android-m2repository
     - sys-img-armeabi-v7a-android-21
   licenses:
