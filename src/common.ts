@@ -1,3 +1,4 @@
+import { Qos, Message } from './paho-mqtt';
 interface IEvent<T> {
     on(handler: { (data?: T): void }): void;
     off(handler?: { (data?: T): void }): void;
@@ -16,29 +17,6 @@ class EventHandler<T> implements IEvent<T> {
 
     public trigger(data?: T) {
         this.handlers.slice(0).forEach(h => h(data));
-    }
-}
-
-class Message {
-    public payload: string;
-    public bytes: ArrayBuffer;
-    public topic: string;
-    public qos: number;
-    public retained: boolean;
-    constructor(
-        mqttMessage: {
-            payloadString?: string,
-            payloadBytes?: ArrayBuffer,
-            destinationName?: string,
-            qos?: number,
-            retained?: boolean;
-        }
-    ) {
-        this.payload = mqttMessage.payloadString || '';
-        this.bytes = mqttMessage.payloadBytes || null;
-        this.topic = mqttMessage.destinationName || '';
-        this.qos = mqttMessage.qos || 0;
-        this.retained = mqttMessage.retained || false;
     }
 }
 
