@@ -2,6 +2,12 @@
 
 This nativescript-mqtt module is a cross-platofrm javascript implementation leveraging native socket support and the open source [MQTT PAHO library link](http://www.eclipse.org/paho). Currently the library only supports the websocket protocol for cross-platform on port 80 or 443 for SSL.
 
+## BREAKING CHANGES
+
+Version 2.0 of this plugin now exposes everything differently from 1.0 and is more inline with the PAHO implementation. It's recommended to completely refactor 1.0 code, as 2.0 now exposes many cool features like subscription promises and others!
+
+The biggest change is that most of `ClientOptions` have been moved to `ConnectionOptions`.
+
 ## Usage Sample
 ### Create an MQTT Client
 ```typescript
