@@ -13,6 +13,7 @@ matrix:
       language: node_js 
       node_js: "12"
       jdk: oraclejdk8
+      before_install: pip install six
       script: cd demo && npm run build.plugin && npm i && tns build ios --env.uglify
     - language: android
       os: linux
@@ -40,6 +41,7 @@ matrix:
       node_js: "12"
       jdk: oraclejdk8
       osx_image: xcode11.7
+      before_install: pip install six
       script: cd src && npm i && npm run test.ios
 
 android:
