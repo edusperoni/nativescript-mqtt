@@ -80,7 +80,8 @@ function onMessageArrived(message) {
  * @namespace Paho
  */
 
- require("nativescript-websockets");
+require("@nativescript/core/globals");
+require("nativescript-websockets");
  
 /* jshint shadow:true */
 (function ExportLibrary(root, factory) {
