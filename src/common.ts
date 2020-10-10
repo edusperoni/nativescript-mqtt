@@ -20,29 +20,6 @@ class EventHandler<T> implements IEvent<T> {
     }
 }
 
-// class Message {
-//     public payload: string;
-//     public bytes: ArrayBuffer;
-//     public topic: string;
-//     public qos: Qos;
-//     public retained: boolean;
-//     constructor(
-//         mqttMessage: {
-//             payloadString?: string,
-//             payloadBytes?: ArrayBuffer,
-//             destinationName?: string,
-//             qos?: Qos,
-//             retained?: boolean;
-//         }
-//     ) {
-//         this.payload = mqttMessage.payloadString || '';
-//         this.bytes = mqttMessage.payloadBytes || null;
-//         this.topic = mqttMessage.destinationName || '';
-//         this.qos = mqttMessage.qos || 0;
-//         this.retained = mqttMessage.retained || false;
-//     }
-// }
-
 let guid = () => {
     function s4() {
         return Math.floor((1 + Math.random()) * 0x10000)

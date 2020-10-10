@@ -1,6 +1,5 @@
 import { ConnectionOptions, ConnectionState, Message, MQTTClient, OnConnectedParams, Qos, ClientOptions } from 'nativescript-mqtt';
-import { Observable } from 'tns-core-modules/data/observable';
-import { ObservableArray } from 'tns-core-modules/data/observable-array/observable-array';
+import { Observable, ObservableArray } from '@nativescript/core';
 
 
 interface MessageItem {

@@ -1,5 +1,4 @@
 import { IEvent, EventHandler, guid, Message } from './common';
-export { IEvent, EventHandler, guid, Message };
 import * as MQTT from './paho-mqtt';
 
 export type MQTTError = MQTT.MQTTError;
