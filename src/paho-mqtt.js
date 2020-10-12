@@ -82,6 +82,29 @@ function onMessageArrived(message) {
 
 require("@nativescript/core/globals");
 require("nativescript-websockets");
+// compatibility with websockets <=1.5.5
+// TODO: remove this after https://github.com/NathanaelA/nativescript-websockets/pull/87 is published
+if(typeof WebSocket === "function" && typeof NSMutableData !== "undefined") {
+	const oldFn = global.WebSocket;
+	global.WebSocket = function() {
+		const ws = oldFn.apply(global, arguments);
+		const oldNotify = ws._notify;
+		ws._notify = function() {
+			if(arguments.length >=1) {
+				const data = arguments[1];
+				if(data && data.length >= 1) {
+					if(data[1] instanceof NSMutableData) {
+						let buf = new ArrayBuffer(data[1].length);
+						data[1].getBytes(buf);
+						data[1] = buf;
+					}
+				}
+			}
+			return oldNotify.apply(ws, arguments);
+		};
+		return ws;
+	};
+}
  
 /* jshint shadow:true */
 (function ExportLibrary(root, factory) {
