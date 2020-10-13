@@ -25,7 +25,8 @@
         "plugin.prepare": "npm run build && cd ../demo && ns plugin remove nativescript-mqtt && ns plugin add ../src",
         "clean": "npm run demo.reset && npx rimraf -- node_modules package-lock.json && npm i",
         "ci.tslint": "npm i && tslint '**/*.ts' --config '../tslint.json' --exclude '**/node_modules/**'",
-        "prepack": "echo nothing to pack"
+        "prepack": "echo nothing to pack",
+        "changelog": "conventional-changelog -p angular -i ../CHANGELOG.md -s"
     },
     "keywords": [
         "NativeScript",
@@ -47,6 +48,7 @@
         "@nativescript/core": "^7.0.10",
         "@nativescript/types": "^7.0.4",
         "@types/node": "^12.12.67",
+        "conventional-changelog-cli": "^2.1.0",
         "rimraf": "^3.0.2",
         "semver": "^7.3.2",
         "tslint": "^6.1.3",
