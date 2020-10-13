@@ -1,12 +1,13 @@
 {
   "dependencies": {
-    "@nativescript/core": "7.0.10",
+    "@nativescript/core": "7.0.11",
     "@nativescript/theme": "^3.0.0",
     "@nativescript/unit-test-runner": "1.0.2",
     "nativescript-mqtt": "file:../src"
   },
   "devDependencies": {
     "@nativescript/android": "7.0.0",
+    "@nativescript/ios": "^7.0.2-rc1",
     "@nativescript/types": "7.0.4",
     "@nativescript/webpack": "^3.0.7",
     "@types/jasmine": "3.5.14",
