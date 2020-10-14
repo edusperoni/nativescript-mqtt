@@ -8,12 +8,12 @@ matrix:
       osx_image: xcode11
       before_install:
         - pip install six
-      before_script:
-        - export IOS_SIMULATOR_UDID=$(xcrun xctrace list devices 2>&1 | grep "(13.5)" | grep -i "iphone" | sed -E 's/.*\(([0-9A-F-]+)\).*/\1/g' | head -n1)
-        - xcrun simctl list
-        - xcrun simctl boot $IOS_SIMULATOR_UDID
-        - sleep 120
-        - xcrun simctl list | grep "(Booted)"
+      # before_script:
+      #   - export IOS_SIMULATOR_UDID=$(xcrun xctrace list devices 2>&1 | grep "(13.5)" | grep -i "iphone" | sed -E 's/.*\(([0-9A-F-]+)\).*/\1/g' | head -n1)
+      #   - xcrun simctl list
+      #   - xcrun simctl boot $IOS_SIMULATOR_UDID
+      #   - sleep 120
+      #   - xcrun simctl list | grep "(Booted)"
       script: cd src && npm i && travis_retry npm run test.ios
 
 android:
