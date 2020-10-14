@@ -9,7 +9,7 @@ matrix:
       before_install:
         - pip install six
       before_script:
-        - export IOS_SIMULATOR_UDID=$(xcrun xctrace list devices 2>&1 | grep "(13.5)" | grep -i "iphone" | sed -E 's/.*\(([0-9A-F-]+)\).*/\1/g' | head -n1)
+        - export IOS_SIMULATOR_UDID=$(xcrun xctrace list devices 2>&1 | grep '(12.0)' | grep -i "iphone" | sed -E 's/.*\(([0-9A-F-]+)\).*/\1/g' | head -n1)
         # - export IOS_SIMULATOR_UDID=$(instruments -s devices | grep "(13.5)" | grep -i "iphone" | sed -E 's/.*\[([0-9A-F-]+)\].*/\1/g' | head -n1)
         - xcrun simctl list
         - xcrun simctl boot $IOS_SIMULATOR_UDID
