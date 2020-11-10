@@ -55,7 +55,7 @@
         "typescript": "~3.9.7"
     },
     "dependencies": {
-        "nativescript-websockets": "^1.5.5"
+        "nativescript-websockets": "^1.5.6"
     },
     "bootstrapper": "nativescript-plugin-seed"
 }
