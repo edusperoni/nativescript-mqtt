@@ -35,7 +35,7 @@ matrix:
         - android-wait-for-emulator
       before_install:
         - nvm install 12
-      script: cd src && npm i && npm run test.android
+      script: cd src && npm i && npm run build && npm run test.android
     - os: osx
       language: node_js
       node_js: "12"
@@ -49,7 +49,7 @@ matrix:
         - xcrun simctl boot $IOS_SIMULATOR_UDID
         - sleep 120
         - xcrun simctl list | grep "(Booted)"
-      script: cd src && npm i && travis_retry npm run test.ios
+      script: cd src && npm i && npm run build && travis_retry npm run test.ios
 
 android:
   components:
