@@ -26,7 +26,8 @@
         "clean": "npm run demo.reset && npx rimraf -- node_modules package-lock.json && npm i",
         "ci.tslint": "npm i && tslint '**/*.ts' --config '../tslint.json' --exclude '**/node_modules/**'",
         "prepack": "echo nothing to pack",
-        "changelog": "conventional-changelog -p angular -i ../CHANGELOG.md -s"
+        "changelog": "conventional-changelog -p angular -i ../CHANGELOG.md -s",
+        "version": "npm run changelog && git add CHANGELOG.md"
     },
     "keywords": [
         "NativeScript",
