@@ -36,20 +36,20 @@ matrix:
       before_install:
         - nvm install 12
       script: cd src && npm i && npm run build && npm run test.android
-    - os: osx
-      language: node_js
-      node_js: "12"
-      jdk: oraclejdk8
-      osx_image: xcode12.3
-      before_install:
-        - pip install six
-      before_script:
-        - export IOS_SIMULATOR_UDID=$(xcrun xctrace list devices 2>&1 | grep "(13.5)" | grep -i "iphone" | sed -E 's/.*\(([0-9A-F-]+)\).*/\1/g' | head -n1)
-        - xcrun simctl list
-        - xcrun simctl boot $IOS_SIMULATOR_UDID
-        - sleep 120
-        - xcrun simctl list | grep "(Booted)"
-      script: cd src && npm i && npm run build && travis_retry npm run test.ios
+    # - os: osx
+    #   language: node_js
+    #   node_js: "12"
+    #   jdk: oraclejdk8
+    #   osx_image: xcode12.3
+    #   before_install:
+    #     - pip install six
+    #   before_script:
+    #     - export IOS_SIMULATOR_UDID=$(xcrun xctrace list devices 2>&1 | grep "(13.5)" | grep -i "iphone" | sed -E 's/.*\(([0-9A-F-]+)\).*/\1/g' | head -n1)
+    #     - xcrun simctl list
+    #     - xcrun simctl boot $IOS_SIMULATOR_UDID
+    #     - sleep 120
+    #     - xcrun simctl list | grep "(Booted)"
+    #   script: cd src && npm i && npm run build && travis_retry npm run test.ios
 
 android:
   components:
