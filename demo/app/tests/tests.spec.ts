@@ -179,7 +179,7 @@ describe("connect function", function() {
 
 describe("mqtt messaging", function() {
     let mqttClient: MQTTClient;
-    const testSubject = "nativescript-mqtt";
+    const testSubject = `nativescript-mqtt-${Math.floor(Math.random() * 1000)}`;
     beforeAll((done) => {
         mqttClient = generateClient();
         const success = () => {
