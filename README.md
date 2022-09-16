@@ -1,3 +1,12 @@
+# THIS PLUGIN HAS MOVED!
+
+This plugin has now moved to the following repo: https://github.com/edusperoni/nativescript-plugins
+
+The updated npm package is `@edusperoni/nativescript-mqtt` https://www.npmjs.com/package/@edusperoni/nativescript-mqtt
+
+---
+
+
 # NativeScript MQTT 3.1.1 Module ![Build Status](https://travis-ci.org/edusperoni/nativescript-mqtt.svg?branch=master)
 
 This nativescript-mqtt module is a cross-platofrm javascript implementation leveraging native socket support and the open source [MQTT PAHO library link](http://www.eclipse.org/paho). Currently the library only supports the websocket protocol for cross-platform on port 80 or 443 for SSL.
